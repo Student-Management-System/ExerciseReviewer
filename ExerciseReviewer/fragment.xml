@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<fragment>
+    <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Exercise Reviewing"
+            id="de.uni_hildesheim.sse.exerciseReviewer">
+      </category>
+      <view
+            name="Exercise Reviewing"
+            icon="icons/reviewer.gif"
+            category="de.uni_hildesheim.sse.exerciseReviewer"
+            class="de.uni_hildesheim.sse.exerciseReviewer.eclipse.views.ReviewView"
+            id="de.uni_hildesheim.sse.exerciseSubmitter.views.ReviewView">
+      </view>
+      <view
+            name="Exercise Users"
+            icon="icons/reviewer.gif"
+            category="de.uni_hildesheim.sse.exerciseReviewer"
+            class="de.uni_hildesheim.sse.exerciseReviewer.eclipse.views.UsersView"
+            id="de.uni_hildesheim.sse.exerciseSubmitter.views.UsersView">
+      </view>
+      <view
+            name="Exercise Review Results"
+            icon="icons/reviewer.gif"
+            category="de.uni_hildesheim.sse.exerciseReviewer"
+            class="de.uni_hildesheim.sse.exerciseReviewer.eclipse.views.ResultView"
+            id="de.uni_hildesheim.sse.exerciseSubmitter.views.ResultView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               closeable="false"
+               id="de.uni_hildesheim.sse.exerciseSubmitter.views.ReviewView"
+               moveable="true"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.TaskList"
+               showTitle="true"
+               standalone="false"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="false"
+            icon="icons/reviewed_ov.gif"
+            id="ExerciseReviewer.reviewedDecorator"
+            label="Decorates reviewed exercises."
+            lightweight="false"
+            location="TOP_LEFT"
+            class="de.uni_hildesheim.sse.exerciseReviewer.eclipse.decorators.ReviewLabelDecorator"
+            state="true">
+         <description>
+            A simple decorator showing reviewed exercises.
+         </description>
+      </decorator>
+   </extension>
+</fragment>

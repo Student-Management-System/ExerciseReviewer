@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ExerciseReviewer
+Bundle-SymbolicName: ExerciseReviewer;singleton:=true
+Bundle-Version: 1.8.5
+Bundle-Vendor: SSE, University of Hildesheim
+Fragment-Host: ExerciseSubmitter;bundle-version="1.8.0"
+Require-Bundle: org.eclipse.ui.ide
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
