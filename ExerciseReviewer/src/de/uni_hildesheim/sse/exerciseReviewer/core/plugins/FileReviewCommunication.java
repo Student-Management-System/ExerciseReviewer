@@ -10,21 +10,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.uni_hildesheim.sse.exerciseLib.Exercise;
+import de.uni_hildesheim.sse.exerciseLib.ExerciseData;
+import de.uni_hildesheim.sse.exerciseLib.RealUser;
+import de.uni_hildesheim.sse.exerciseLib.Review;
+import de.uni_hildesheim.sse.exerciseLib.ReviewException;
+import de.uni_hildesheim.sse.exerciseLib.User;
+import de.uni_hildesheim.sse.exerciseLib.UserProvider;
+import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
+import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPlugin;
+import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.CommonStuff;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException.SubmissionPublicMessage;
-import de.uni_hildesheim.sse.exerciseLib.Exercise;
-import de.uni_hildesheim.sse.exerciseLib.ExerciseData;
-import de.uni_hildesheim.sse.exerciseLib.RealUser;
-import de.uni_hildesheim.sse.exerciseLib.ReviewException;
-import de.uni_hildesheim.sse.exerciseLib.User;
-import de.uni_hildesheim.sse.exerciseLib.UserProvider;
-import de.uni_hildesheim.sse.exerciseLib.Review;
-import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
-import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPlugin;
-import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;
 
 /**
  * Defines the interface of a review communication instance writing its data to
@@ -207,26 +208,18 @@ public class FileReviewCommunication
      * 
      * @since 1.00
      */
-    public void submitReview(String task, Review review)
-        throws CommunicationException {
-        double maxCredits = getMaximumCredits(task);
-        if (review.getCredits() < 0
-            || (maxCredits > 0 && review.getCredits() > maxCredits)) {
-            throw new ReviewException(
-                SubmissionPublicMessage.INVALID_REVIEW_CREDITS,
-                new Throwable());
+    public void submitReview(Assignment task, Review review) throws CommunicationException {
+        double maxCredits = task.getPoints();
+        if (review.getCredits() < 0 || (maxCredits > 0 && review.getCredits() > maxCredits)) {
+            throw new ReviewException(SubmissionPublicMessage.INVALID_REVIEW_CREDITS,  new Throwable());
         }
         if (null == users.get(review.getUserName())) {
-            throw new ReviewException(
-                ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE_NO_USER,
-                new Throwable());
+            throw new ReviewException(ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE_NO_USER, new Throwable());
         }
 
-        Exercise exercise = exerciseData.getExercise(task);
+        Exercise exercise = exerciseData.getExercise(task.getName());
         if (null == exercise) {
-            throw new ReviewException(
-                ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE_NO_EXERCISE,
-                new Throwable());
+            throw new ReviewException(ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE_NO_EXERCISE, new Throwable());
         } else {
             exercise.addReview(review);
             storeExercises();

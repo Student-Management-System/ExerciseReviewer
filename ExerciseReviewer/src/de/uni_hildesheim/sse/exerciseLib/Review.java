@@ -1,36 +1,25 @@
 package de.uni_hildesheim.sse.exerciseLib;
 
+import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assessment;
+
 /**
  * Represents an individual (read-only) review.
  * 
+ * @author El-Sharkawy
  * @author Holger Eichelberger
  * @since 1.00
- * @version 1.00
+ * @version 2.00
  */
 public class Review {
     
     /**
      * Stores the review text.
      * 
-     * @since 1.00
+     * @since 2.00
      */
-    private String review;
+    private Assessment review;
 
-    /**
-     * Stores the assigned credits.
-     * 
-     * @since 1.00
-     */
-    private double credits;
-    
-    /**
-     * Stores the user name of the user
-     * who submitted the assigned exercise/task.
-     * 
-     * @since 1.00
-     */
-    private String userName;
-    
     /**
      * Stores, if this review was submitted to
      * a server after the last modification.
@@ -42,17 +31,12 @@ public class Review {
     /**
      * Creates a new review object.
      * 
-     * @param userName the user
-     *        who submitted the assigned exercise/task
-     * @param credits the assigned credits
-     * @param review the review text
+     * @param review the review text (sumitter name, review comment(s), and points)
      * 
      * @since 1.00
      */
-    public Review(String userName, double credits, String review) {
-        this.userName = userName;
+    public Review(Assessment review) {
         this.review = review;
-        this.credits = credits;
     }
 
     /**
@@ -63,7 +47,7 @@ public class Review {
      * @since 1.00
      */
     public double getCredits() {
-        return credits;
+        return review.getAchievedPoints();
     }
 
     /**
@@ -74,7 +58,7 @@ public class Review {
      * @since 1.00
      */
     public String getReview() {
-        return review;
+        return review.getFullReviewComment() != null ? review.getFullReviewComment() : "";
     }
 
     /**
@@ -86,7 +70,7 @@ public class Review {
      * @since 1.00
      */
     public String getUserName() {
-        return userName;
+        return review.getSubmitterName();
     }
     
     /**
@@ -113,6 +97,14 @@ public class Review {
      */
     public boolean isSubmittedToServer() {
         return isSubmittedToServer;
+    }
+    
+    /**
+     * Returns the assessment to be submitted to the server.
+     * @return The assessment to be submitted to the server.
+     */
+    public Assessment getAssessment() {
+        return review;
     }
 
 }

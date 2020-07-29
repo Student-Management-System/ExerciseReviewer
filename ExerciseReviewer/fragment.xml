@@ -51,7 +51,7 @@
       <decorator
             adaptable="false"
             icon="icons/reviewed_ov.gif"
-            id="ExerciseReviewer.reviewedDecorator"
+            id="net.ssehub.ExerciseReviewer.reviewedDecorator"
             label="Decorates reviewed exercises."
             lightweight="false"
             location="TOP_LEFT"

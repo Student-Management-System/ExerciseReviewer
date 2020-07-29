@@ -32,13 +32,13 @@ import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
 import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.actions.MessageListener;
 import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
 import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.ISubmissionProject;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils.DialogType;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    SubmissionCommunication;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException.SubmissionPublicMessage;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.
+    SubmissionCommunication;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;
 
 /**
  * Some utilities for handling reviews in eclipse.
@@ -71,8 +71,7 @@ public class ReviewUtils {
      * @since 1.00
      */
     public static void updateDecorator() {
-        Activator.getDefault().getWorkbench().getDecoratorManager().
-            update(ReviewLabelDecorator.DECORATOR_ID);
+        PlatformUI.getWorkbench().getDecoratorManager().update(ReviewLabelDecorator.DECORATOR_ID);
     }
     
     /**
@@ -83,15 +82,32 @@ public class ReviewUtils {
      * 
      * @since 1.00
      */
-    public static String getTaskFromPath(IPath path) {
+    public static Assignment getTaskFromPath(IPath path) {
         int pos = path.segmentCount() - 2;
-        String task;
+        String taskName;
         if (pos >= 0) {
-            task = path.segment(pos);
+            taskName = path.segment(pos);
         } else {
-            task = "";
+            taskName = "";
         }
-        return task;
+        
+        SubmissionCommunication com = null;
+        if (SubmissionCommunication.getInstancesCount() == 0) {
+            // Eclipse may load this on start up before the activator is loaded (e.g, to decorate projects)
+            // Init communication on the fly.
+            try {
+                com = SubmissionCommunication.getInstances(IConfiguration.INSTANCE, IConfiguration.INSTANCE.getUserName(),
+                    true, null).get(0);
+            } catch (CommunicationException e) {
+                Activator.log(e.getMessage(), e);
+            }
+        } else {
+            com = SubmissionCommunication.getInstance(0);
+        }
+        
+//        SubmissionCommunication com = SubmissionCommunication.getInstance(0);
+        return SubmissionCommunication.searchForAssignment(taskName, com.getSubmissionsForReview(),
+            com.getAvailableForSubmission(), com.getSubmissionsForReplay());
     }
     
     /**
@@ -120,7 +136,7 @@ public class ReviewUtils {
          * 
          * @since 1.08
          */
-        private String task;
+        private Assignment task;
 
         /**
          * Stores the assigned submission project.
@@ -139,27 +155,26 @@ public class ReviewUtils {
         /**
          * Creates a new project information instance.
          * 
-         * @param task the assigned task name
+         * @param task The assignment under correction
          * @param submissionProject the submission project
          * @param eclipseProject the related Eclipse project
          * 
          * @since 1.08
          */
-        private ProjectInfo(String task, ISubmissionProject submissionProject, 
-            IProject eclipseProject) {
+        private ProjectInfo(Assignment task, ISubmissionProject submissionProject, IProject eclipseProject) {
             this.task = task;
             this.submissionProject = submissionProject;
             this.eclipseProject = eclipseProject;
         }
         
         /**
-         * Returns the name of the (assigned) task.
+         * Returns the (assigned) task.
          * 
-         * @return the name of the task
+         * @return The (assigned) task.
          * 
          * @since 1.08
          */
-        public String getTask() {
+        public Assignment getTask() {
             return task;
         }
         
@@ -195,22 +210,18 @@ public class ReviewUtils {
      */
     public static List<ProjectInfo> getAllProjects() {
         List<ProjectInfo> result = new ArrayList<ProjectInfo>();
-        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().
-            getProjects();
+        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
         burstInstances = new ArrayList<SubmissionCommunication>();
         for (int i = 0; i < projects.length; i++) {                
-            String task = null;
+            Assignment task = null;
             ISubmissionProject sProject = null;
             if (projects[i] instanceof IJavaProject) {
                 IJavaProject project = (IJavaProject) projects[i];
-                task = getTaskFromPath(project.getResource().
-                    getLocation());
-                sProject =
-                    ISubmissionProject.createSubmissionProject(project);
+                task = getTaskFromPath(project.getResource().getLocation());
+                sProject = ISubmissionProject.createSubmissionProject(project);
             } else {
                 task = getTaskFromPath(projects[i].getLocation());
-                sProject =
-                    ISubmissionProject.createSubmissionProject(projects[i]);
+                sProject = ISubmissionProject.createSubmissionProject(projects[i]);
             }
             if (task != null && sProject != null) {
                 result.add(new ProjectInfo(task, sProject, projects[i]));
@@ -228,16 +239,13 @@ public class ReviewUtils {
         saveAllDirtyEditors();
         List<ProjectInfo> allProjects = getAllProjects();
         try {
-            ReviewCommunication comm = ReviewCommunication.getInstance(
-                IConfiguration.INSTANCE, null);
+            ReviewCommunication comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
             burstInstances = new ArrayList<SubmissionCommunication>();
             for (ProjectInfo project : allProjects) {                
 
-                Review review = comm.getReview(project.getTask(), 
-                    project.getSubmissionProject().getName());
+                Review review = comm.getReview(project.getTask().getName(), project.getSubmissionProject().getName());
                 if (null != review) {
-                    if (submitProject(project.getSubmissionProject(), 
-                        project.getTask())) {
+                    if (submitProject(project.getSubmissionProject(), project.getTask())) {
                         review.setSubmittedToServer();
                         comm.submitReview(project.getTask(), review);
                     }
@@ -261,37 +269,32 @@ public class ReviewUtils {
      * 
      * @since 1.00
      */
-    public static boolean submitProject(ISubmissionProject project, 
-        String task) {
+    public static boolean submitProject(ISubmissionProject project, Assignment task) {
         
         boolean result = false;
-        if (Boolean.valueOf(IConfiguration.INSTANCE.getProperty(
-            "review.resubmitExercise", "true"))) {
-            String groupName = IConfiguration.INSTANCE.getGroupName();
+        if (Boolean.valueOf(IConfiguration.INSTANCE.getProperty("review.resubmitExercise", "true"))) {
             boolean doIt = true;
-            if (IConfiguration.INSTANCE.isExplicitGroupNameEnabled()) {
-                IConfiguration.INSTANCE.setGroupName(project.getName());
-                String gn = IConfiguration.INSTANCE.getGroupName();
-                if (null == gn || 0 == gn.length()) {
-                    GuiUtils.openDialog(DialogType.ERROR, 
-                        "Empty group name not allowed!");
-                    doIt = false;
-                }
-            }
+//            String groupName = IConfiguration.INSTANCE.getGroupName();
+//            if (IConfiguration.INSTANCE.isExplicitGroupNameEnabled()) {
+//                IConfiguration.INSTANCE.setGroupName(project.getName());
+//                String gn = IConfiguration.INSTANCE.getGroupName();
+//                if (null == gn || 0 == gn.length()) {
+//                    GuiUtils.openDialog(DialogType.ERROR, 
+//                        "Empty group name not allowed!");
+//                    doIt = false;
+//                }
+//            }
             if (doIt) {
                 List<SubmissionCommunication> commLinks;
                 if (null == burstInstances || burstInstances.isEmpty()) {
-                    commLinks =
-                        GuiUtils.validateConnections(IConfiguration.INSTANCE, 
-                            project.getName());
+                    commLinks = GuiUtils.validateConnections(IConfiguration.INSTANCE, project.getName());
                     if (null != burstInstances) {
                         burstInstances.addAll(commLinks);
                     }
                 } else {
                     for (SubmissionCommunication comm : burstInstances) {
                         comm.setUserNameForSubmission(project.getName());
-                        comm.setExplicitTargetFolder(
-                            IConfiguration.INSTANCE.getExplicitFolderName());
+//                        comm.setExplicitTargetFolder(IConfiguration.INSTANCE.getExplicitFolderName());
                     }
                     commLinks = burstInstances;
                 }
@@ -300,13 +303,12 @@ public class ReviewUtils {
                 for (SubmissionCommunication comm : commLinks) {
                     if (null != project) {
                         // use the reviewer user name for communication.
-                        GuiUtils.submit(messageListener, project, comm,
-                            task);
+                        GuiUtils.submit(messageListener, project, comm, task);
                         result = true;
                     }
                 }
             }
-            IConfiguration.INSTANCE.setGroupName(groupName);
+//            IConfiguration.INSTANCE.setGroupName(groupName);
         }
         return result;
     }

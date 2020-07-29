@@ -6,22 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.swt.widgets.Widget;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.part.*;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -39,9 +23,20 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.ui.IPackagesViewPart;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.OpenStrategy;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -49,23 +44,33 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.jface.action.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.ViewPart;
 
-import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
-import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.ISubmissionProject;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.SwitchWorkspace;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils.DialogType;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    CommunicationException;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessage;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessageListener;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.IPathFactory;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.Submission;
 import de.uni_hildesheim.sse.exerciseLib.Review;
 import de.uni_hildesheim.sse.exerciseLib.ReviewException;
 import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
@@ -73,8 +78,24 @@ import de.uni_hildesheim.sse.exerciseReviewer.core.plugins.ServerAuthentication;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.ReviewUtils;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.decorators.
     ReviewLabelDecorator;
+import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
+import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils.DialogType;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.ISubmissionProject;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.SwitchWorkspace;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.
+    CommunicationException;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessage;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessageListener;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.IPathFactory;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.Submission;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     SubmissionCommunication;
+import net.ssehub.exercisesubmitter.protocol.backend.NetworkException;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assessment;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;
+import net.ssehub.exercisesubmitter.protocol.frontend.ExerciseReviewerProtocol;
 
 /**
  * A workbench view for reviewing submitted exercises. This view provides a
@@ -159,11 +180,11 @@ public class ReviewView extends ViewPart implements IPathFactory {
     private IJavaProject iJavaProject;
 
     /**
-     * Stores the name of the task/exercise.
+     * Stores the task/exercise.
      * 
      * @since 1.00
      */
-    private String task;
+    private Assignment task;
 
     /**
      * Stores the label for the users who submitted the project.
@@ -635,13 +656,11 @@ public class ReviewView extends ViewPart implements IPathFactory {
      */
     private void retrieveProjectData(IPath path, String userName) {
         task = ReviewUtils.getTaskFromPath(path);
-        if (task.length() > 0) {
-            labelProject.setText(task + " (" + userName + ")");
+        if (null != task) {
+            labelProject.setText(task.getName() + " (" + userName + ")");
             try {
-                ReviewCommunication comm =
-                    ReviewCommunication.getInstance(IConfiguration.INSTANCE,
-                        null);
-                maxCredits = comm.getMaximumCredits(task);
+                ReviewCommunication comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
+                maxCredits = task.getPoints();
                 StringBuilder builder = new StringBuilder("");
                 List<String> realUsers = comm.getRealUsers(userName);
                 if (null != realUsers) {
@@ -656,10 +675,10 @@ public class ReviewView extends ViewPart implements IPathFactory {
                     labelUsers.setText(userName);
                 }
                 if (maxCredits > 0) {
-                    labelCredits.setText(CREDITS_LABEL_TEXT_PREFIX + "("
-                        + maxCredits + ")" + CREDITS_LABEL_TEXT_POSTFIX);
+                    labelCredits.setText(CREDITS_LABEL_TEXT_PREFIX + "(" + maxCredits + ")"
+                        + CREDITS_LABEL_TEXT_POSTFIX);
                 }
-                Review review = comm.getReview(task, userName);
+                Review review = comm.getReview(task.getName(), userName);
                 if (null != review) {
                     this.review.setText(review.getReview());
                     this.credits.setText(String.valueOf(review.getCredits()));
@@ -687,8 +706,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         if (null != project && iJavaProject != project) {
             clearEditor();
             iJavaProject = project;
-            retrieveProjectData(project.getResource().getLocation(), project
-                .getElementName());
+            retrieveProjectData(project.getResource().getLocation(), project.getElementName());
             try {
                 setProblemMarker(project.getResource().findMarkers(
                     IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
@@ -710,7 +728,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
     private void clearEditor() {
         iProject = null;
         iJavaProject = null;
-        task = "";
+        task = null;
         maxCredits = -1;
         labelUsers.setText("");
         labelProject.setText("");
@@ -957,8 +975,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         ISubmissionProject project = obtainSubmissionProject();
         String log = null;
         try {
-            SubmissionCommunication replayComm = GuiUtils
-                .getFirstReplayConnection(IConfiguration.INSTANCE, null);
+            SubmissionCommunication replayComm = GuiUtils.getFirstReplayConnection(IConfiguration.INSTANCE, null);
             if (null != replayComm) {
                 log = replayComm.getSubmissionLog(task, project.getName());
             }
@@ -1028,52 +1045,48 @@ public class ReviewView extends ViewPart implements IPathFactory {
      * 
      * @since 1.00
      */
-    private void submitButtonSelected(SelectionEvent event, 
-        boolean submitToRepository) {
+    private void submitButtonSelected(SelectionEvent event, boolean submitToRepository) {
         try {
             double creditValue = Double.parseDouble(credits.getText());
             if (creditValue < 0) {
-                GuiUtils.openDialog(DialogType.ERROR,
-                    "Credit value is negative!");
+                GuiUtils.openDialog(DialogType.ERROR, "Credit value is negative!");
             } else if (maxCredits > 0 && creditValue > maxCredits) {
-                GuiUtils.openDialog(DialogType.ERROR,
-                    "Credit value exceeds maximum value (" + maxCredits + ")!");
+                GuiUtils.openDialog(DialogType.ERROR, "Credit value exceeds maximum value (" + maxCredits + ")!");
             } else if (review.getText().length() == 0 ) {
-                GuiUtils.openDialog(DialogType.ERROR,
-                    "Review text is empty!");
+                GuiUtils.openDialog(DialogType.ERROR, "Review text is empty!");
             } else {
                 ReviewUtils.saveAllDirtyEditors();
                 String reviewText = review.getText();
                 ISubmissionProject project = obtainSubmissionProject();
                 try {
-                    Review review =
-                        new Review(project.getName(), creditValue, reviewText);
-                    ReviewCommunication comm =
-                        ReviewCommunication.getInstance(
-                            IConfiguration.INSTANCE, null);
-                    if (submitToRepository) {
-                        if (ReviewUtils.submitProject(project, task)) {
-                            review.setSubmittedToServer();
+                    // Not nice here, but the tool uses only one protocol instance -> Thus, it can be used that way
+                    Assessment assessment = ((ExerciseReviewerProtocol) Activator.getProtocol())
+                        .getAssessmentForSubmission(project.getName());
+                    if (null != assessment) {
+                        Review review = new Review(assessment);
+                        review.getAssessment().setAchievedPoints(creditValue);
+                        review.getAssessment().setFullReviewComment(reviewText);
+                       
+                        ReviewCommunication comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
+                        if (submitToRepository) {
+                            if (ReviewUtils.submitProject(project, task)) {
+                                review.setSubmittedToServer();
+                            }
                         }
+                        comm.submitReview(task, review);
+                        if (Boolean.valueOf(IConfiguration.INSTANCE.getProperty("review.storeInExercise", "true"))) {
+                            ReviewUtils.writeReviewToFile(project, review, maxCredits,
+                                comm.getRealUsers(review.getUserName()));
+                            refreshProject();
+                        }
+                        ReviewUtils.updateDecorator();
                     }
-                    comm.submitReview(task, review);
-                    if (Boolean.valueOf(IConfiguration.INSTANCE.getProperty(
-                        "review.storeInExercise", "true"))) {
-                        ReviewUtils.writeReviewToFile(
-                            project, 
-                            review, 
-                            maxCredits, 
-                            comm.getRealUsers(review.getUserName()));
-                        refreshProject();
-                    }
-                    ReviewUtils.updateDecorator();
-                } catch (CommunicationException e) {
+                } catch (CommunicationException | NetworkException e) {
                     GuiUtils.handleThrowable(e);
                 }
             }
         } catch (NumberFormatException e) {
-            GuiUtils.openDialog(DialogType.ERROR,
-                "Credit input is not a number!");
+            GuiUtils.openDialog(DialogType.ERROR, "Credit input is not a number!");
         }
     }
     
@@ -1107,59 +1120,47 @@ public class ReviewView extends ViewPart implements IPathFactory {
      * @since 1.00
      */
     private void replayAllButtonSelected(boolean alsoForReplay) {
-        SubmissionCommunication replayComm = GuiUtils.getFirstReplayConnection(
-            IConfiguration.INSTANCE, null);
+        SubmissionCommunication replayComm = GuiUtils.getFirstReplayConnection(IConfiguration.INSTANCE, null);
         if (null == replayComm) {
-            GuiUtils.openDialog(DialogType.ERROR,
-                "No repository connection allows replay "
-                    + "of submissions!");
+            GuiUtils.openDialog(DialogType.ERROR, "No repository connection allows replay of submissions!");
         } else {
-            String[] replay = replayComm.getSubmissionsForReview();
-            List<String> replayList = new ArrayList<String>();
-            for (String s : replay) {
-                replayList.add(s);
-            }
+            List<Assignment> replayList = new ArrayList<Assignment>(replayComm.getSubmissionsForReview());
             if (alsoForReplay) {
-                replay = replayComm.getSubmissionsForReplay();
-                for (String s : replay) {
-                    replayList.add(s);
-                }
+                replayList.addAll(replayComm.getSubmissionsForReplay());
             }
-            Object[] tasks =
-                GuiUtils.showListDialog("Complete Task/Exercise replay",
-                    "Select the entire task for replay", replayList, false);
+            Object[] tasks = GuiUtils.showListDialog("Complete assignment replay",
+                "Select the entire assignment for replay", replayList, false);
             if (tasks.length == 1) {
-                String task = tasks[0].toString();
-                IPath root =
-                    ResourcesPlugin.getWorkspace().getRoot().getLocation();
+                Assignment task = (Assignment) tasks[0];
+                IPath root = ResourcesPlugin.getWorkspace().getRoot().getLocation();
                 File rootPath = new File(root.toString());
-                if (root.lastSegment().equals(tasks[0])) {
-                    GuiUtils.runEntireReplay("Replaying entire task '"
-                        + task + "'", replayComm, rootPath, (String) task,
-                        this, ResourcesPlugin.getWorkspace().getRoot());
+                if (root.lastSegment().equals(task.getName())) {
+                    // Goal reached -> Check out submissions and start correction
+                    IConfiguration.INSTANCE.setAsssignment(task);
+                    IConfiguration.INSTANCE.store();   
+                    GuiUtils.runEntireReplay("Replaying entire task '" + task.getName() + "'", replayComm, rootPath,
+                        task, this, ResourcesPlugin.getWorkspace().getRoot());
                     try {
-                        ResourcesPlugin.getWorkspace().getRoot().
-                            refreshLocal(IResource.DEPTH_INFINITE, null);
+                        ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+                        ((ExerciseReviewerProtocol) Activator.getProtocol()).loadAssessments(task);
                     } catch (CoreException e) {
+                    } catch (NetworkException e) {
+                        GuiUtils.openDialog(DialogType.ERROR, "Could not load assessments from server");
                     }
                     ReviewUtils.updateDecorator();
                 } else {
+                    // Wrong workspace -> Switch workspace but do not check out submissions, yet
                     if (GuiUtils.openDialog(DialogType.CONFIRMATION,
-                        "This is the wrong workspace. Shall we switch "
-                            + "to an appropriate (new) one (without "
+                        "This is the wrong workspace. Shall we switch to an appropriate (new) one (without "
                             + "preferences)?")) {
-                        boolean done = SwitchWorkspace.switchWorkspace(root
-                            .removeLastSegments(1).toString()
-                            + File.separator + task);
+                        boolean done = SwitchWorkspace.switchWorkspace(root.removeLastSegments(1).toString()
+                            + File.separator + task.getName());
                         if (!done) {
                             GuiUtils.openDialog(
                                 DialogType.CONFIRMATION,
-                                "However, eclipse was not able to create the "
-                                + "new workspace. You must create a new " 
-                                + "workspace with name '" + task + "' and "
-                                + "copy your preferences thereby, switch to "
-                                + "the new workspace and execute "
-                                + "this action on the selected task again.");
+                                "However, eclipse was not able to create the new workspace. You must create a new " 
+                                + "workspace with name '" + task.getName() + "' and copy your preferences thereby, "
+                                + "switch to the new workspace and execute this action on the selected task again.");
                         }
                     }
                 }

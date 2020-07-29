@@ -6,12 +6,10 @@ import de.uni_hildesheim.sse.exerciseLib.RealUser;
 import de.uni_hildesheim.sse.exerciseLib.Review;
 import de.uni_hildesheim.sse.exerciseLib.ReviewException;
 import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    CommunicationException;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    CommunicationInstanceListener;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    EmptySubmissionInstanceListener;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.CommunicationException;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.CommunicationInstanceListener;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.EmptySubmissionInstanceListener;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;
 
 /**
  * Defines the interface of a review communication instance. Instances of
@@ -20,7 +18,7 @@ import de.uni_hildesheim.sse.exerciseSubmitter.submission.
  * 
  * @author Holger Eichelberger
  * @since 1.00
- * @version 1.08
+ * @version 2.1
  */
 public abstract class ReviewCommunication {
 
@@ -30,7 +28,7 @@ public abstract class ReviewCommunication {
      * @since 1.00
      */
     private static ReviewCommunication reviewInstance;
-
+    
     /**
      * Stores the name of the user communicating with the server.
      * 
@@ -74,8 +72,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public abstract List<String> getRealUsers(String userName)
-        throws CommunicationException;
+    public abstract List<String> getRealUsers(String userName) throws CommunicationException;
 
     /**
      * Submits a review.
@@ -88,8 +85,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public abstract void submitReview(String task, Review review)
-        throws CommunicationException;
+    public abstract void submitReview(Assignment task, Review review) throws CommunicationException;
 
     /**
      * Returns the specified review for the given task.
@@ -105,8 +101,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public abstract Review getReview(String task, String userName) 
-        throws CommunicationException;
+    public abstract Review getReview(String task, String userName) throws CommunicationException;
     
     /**
      * Returns the concrete review communication instance available for the
@@ -125,11 +120,10 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public static final ReviewCommunication getInstance(
-        IConfiguration configuration, CommunicationInstanceListener listener)
-        throws CommunicationException {
-        return getInstance(configuration.getUserName(), configuration
-            .getPassword(), listener);
+    public static final ReviewCommunication getInstance(IConfiguration configuration,
+        CommunicationInstanceListener listener) throws CommunicationException {
+        
+        return getInstance(configuration.getUserName(), configuration.getPassword(), listener);
     }
 
     /**
@@ -151,9 +145,8 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public static final ReviewCommunication getInstance(String userName,
-        String password, CommunicationInstanceListener listener)
-        throws CommunicationException {
+    public static final ReviewCommunication getInstance(String userName, String password,
+        CommunicationInstanceListener listener) throws CommunicationException {
 
         // use the dummy listener if none is provided
         if (null == listener) {
@@ -179,14 +172,12 @@ public abstract class ReviewCommunication {
                 }
             }
             if (null == comm) {
-                throw new ReviewException(
-                    CommunicationException.SubmissionPublicMessage.
+                throw new ReviewException(CommunicationException.SubmissionPublicMessage.
                     PLUGIN_NOT_HANDLED, new Throwable());
             } else {
                 listener.doStep("Validating user data for review", step++);
                 if (!comm.authenticateUser()) {
-                    throw new ReviewException(
-                        CommunicationException.SubmissionPublicMessage.
+                    throw new ReviewException(CommunicationException.SubmissionPublicMessage.
                         AUTHENTICATION_ERROR, new Throwable());
                 }
                 reviewInstance = comm;
@@ -246,8 +237,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.00
      */
-    public abstract double getMaximumCredits(String task) 
-        throws CommunicationException;
+    public abstract double getMaximumCredits(String task) throws CommunicationException;
 
     /**
      * Returns all users known and assigned to the related course.
@@ -270,8 +260,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract List<String> getAllKnownTasks() 
-        throws CommunicationException;
+    public abstract List<String> getAllKnownTasks() throws CommunicationException;
     
     /**
      * Returns arbitrary descriptive information on the users.
@@ -369,8 +358,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract int getReviewCount(String task) 
-        throws CommunicationException;
+    public abstract int getReviewCount(String task) throws CommunicationException;
     
     /**
      * Deletes a given user. This method should be called only if
@@ -383,8 +371,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract boolean deleteUser(RealUser user) 
-        throws CommunicationException;
+    public abstract boolean deleteUser(RealUser user) throws CommunicationException;
 
     /**
      * Returns if general user modifications are permitted.
@@ -409,8 +396,7 @@ public abstract class ReviewCommunication {
     /**
      * Returns if task information can be merged.
      * 
-     * @return <code>true</code> if task merges are permitted,
-     *         <code>false</code> else
+     * @return <code>true</code> if task merges are permitted, <code>false</code> else
      * 
      * @since 1.08
      */
@@ -426,8 +412,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract void modifyUser(RealUser user) 
-        throws CommunicationException;
+    public abstract void modifyUser(RealUser user) throws CommunicationException;
     
     /**
      * Deletes an existing task. This method should be called only if
@@ -440,8 +425,7 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract boolean deleteTask(String task) 
-        throws CommunicationException;
+    public abstract boolean deleteTask(String task) throws CommunicationException;
 
     /**
      * Modifies an existing or creates a new task. This method should 
@@ -454,12 +438,11 @@ public abstract class ReviewCommunication {
      * 
      * @since 1.08
      */
-    public abstract void modifyTask(String task, int credits) 
-        throws CommunicationException;
+    public abstract void modifyTask(String task, int credits) throws CommunicationException;
 
     /**
      * Merges with the tasks a file. This method should be called only if
-     * {@link #acceptsTaskMerge()()} returns <code>true</code>.
+     * {@link #acceptsTaskMerge()} returns <code>true</code>.
      * 
      * @param file the file to be merged
      * @throws CommunicationException if any error occurs

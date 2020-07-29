@@ -6,6 +6,7 @@ import java.util.List;
 
 import de.uni_hildesheim.sse.exerciseReviewer.core.plugins.
     FileReviewCommunication;
+import de.uni_hildesheim.sse.exerciseReviewer.core.plugins.StudentManagementCommunication;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
 
@@ -25,8 +26,7 @@ public abstract class ReviewPlugin {
      * 
      * @since 1.00
      */
-    private static final List<ReviewPlugin> PLUGINS = 
-        new ArrayList<ReviewPlugin>();
+    private static final List<ReviewPlugin> PLUGINS = new ArrayList<ReviewPlugin>();
 
     /**
      * Register the default plugins.
@@ -34,6 +34,7 @@ public abstract class ReviewPlugin {
      * @since 1.00
      */
     static {
+        register(StudentManagementCommunication.PLUGIN);
         register(FileReviewCommunication.PLUGIN);
     }
     

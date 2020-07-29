@@ -17,8 +17,12 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
+import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
+import net.ssehub.exercisesubmitter.protocol.backend.NetworkException;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assessment;
+import net.ssehub.exercisesubmitter.protocol.frontend.ExerciseReviewerProtocol;
 
 /**
  * Defines an internal data structure for keeping exercises.
@@ -376,20 +380,32 @@ public class ExerciseData {
      * 
      * @since 1.00
      */
-    private void considerReview(StringTokenizer tokenizer, String user, 
-        double credits, Exercise ex) {
-        String rev = unmask(tokenizer.nextToken());
-        if (tokenizer.hasMoreTokens()) {
-            String submitted = tokenizer.nextToken();
-            if (!EMPTY_REVIEW.equals(rev)) {
-                Review review =
-                    new Review(user, credits, rev);
-                if (Boolean.parseBoolean(submitted)) {
-                    review.setSubmittedToServer();
-                }
-                ex.addReview(review);
-            }
+    private void considerReview(StringTokenizer tokenizer, String user, double credits, Exercise ex) {
+        Assessment assessment = null;
+        try {
+            // Not nice here, but the tool uses only one protocol instance -> Thus, it can be used that way
+            assessment = ((ExerciseReviewerProtocol) Activator.getProtocol()).getAssessmentForSubmission(user);
+        } catch (NetworkException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        if (null != assessment) {
+            Review review = new Review(assessment);
+            ex.addReview(review);
+        }
+        
+//        String rev = unmask(tokenizer.nextToken());
+//        if (tokenizer.hasMoreTokens()) {
+//            String submitted = tokenizer.nextToken();
+//            if (!EMPTY_REVIEW.equals(rev)) {
+//                Review review =
+//                    new Review(assessment);
+//                if (Boolean.parseBoolean(submitted)) {
+//                    review.setSubmittedToServer();
+//                }
+//                ex.addReview(review);
+//            }
+//        }
     }
     
     /**

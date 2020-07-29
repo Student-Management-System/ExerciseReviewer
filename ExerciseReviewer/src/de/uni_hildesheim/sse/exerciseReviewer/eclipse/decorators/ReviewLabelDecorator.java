@@ -13,12 +13,15 @@ import org.eclipse.swt.graphics.Image;
 import de.uni_hildesheim.sse.exerciseLib.Review;
 import de.uni_hildesheim.sse.exerciseLib.ReviewException;
 import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
+import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.ReviewUtils;
 import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
 import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils.DialogType;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
-import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
+import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;
 
 /**
  * Realizes a review label decorator showing if a project
@@ -35,8 +38,7 @@ public class ReviewLabelDecorator extends LabelDecorator {
      * 
      * @since 1.00
      */
-    public static final String DECORATOR_ID = 
-        "ExerciseReviewer.reviewedDecorator";
+    public static final String DECORATOR_ID = "net.ssehub.ExerciseReviewer.reviewedDecorator";
     
     /**
      * Stores an image descriptor proxy for the reviewed projects.
@@ -164,35 +166,30 @@ public class ReviewLabelDecorator extends LabelDecorator {
         if (element instanceof IJavaProject) {
             IJavaProject project = (IJavaProject) element;
             String user = project.getElementName();
-            String task = ReviewUtils.getTaskFromPath(
-                project.getResource().getLocation());
-            try {
-                ReviewCommunication comm = ReviewCommunication.getInstance(
-                    IConfiguration.INSTANCE, null);
-                Review review = comm.getReview(task, user);
-                if (null != review) {
-                    ImageDescriptor id;
-                    if (review.isSubmittedToServer()) {
-                        id = submitted;
-                    } else {
-                        id = reviewed;
+            Assignment task = ReviewUtils.getTaskFromPath(project.getResource().getLocation());
+            // If task = null: Wrong workspace used -> Not in review mode
+            if (null != task) {
+                try {
+                    ReviewCommunication comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
+                    Review review = comm.getReview(task.getName(), user);
+                    if (null != review) {
+                        ImageDescriptor id = review.isSubmittedToServer() ? submitted : reviewed;
+                        OverlayImageDescriptor oid = new OverlayImageDescriptor(image, id,
+                            OverlayImageDescriptor.Position.BOTTOM_RIGHT);
+                        result = oid.getImage();
                     }
-                    OverlayImageDescriptor oid = new OverlayImageDescriptor(
-                        image, id, 
-                        OverlayImageDescriptor.Position.BOTTOM_RIGHT);
-                    result = oid.getImage();
-                }
-            } catch (ReviewException e) {
-                if (null == lastException) {
-                    lastException = e;
-                }
-            } catch (CommunicationException e) {
-                if (e.getMessage().equals(
-                    ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE)) {
-                    System.err.println("Review submitter: Erroneous or no "
-                        + "local review data files in user home directory.");
-                } else {
-                    e.printStackTrace();
+                } catch (ReviewException e) {
+                    if (null == lastException) {
+                        lastException = e;
+                    }
+                } catch (CommunicationException e) {
+                    if (e.getMessage().equals(
+                        ReviewPublicMessage.INVALID_REVIEW_DATASTRUCTURE.toString())) {
+                        System.err.println("Review submitter: Erroneous or no "
+                            + "local review data files in user home directory.");
+                    } else {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

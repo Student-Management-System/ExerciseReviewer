@@ -3,6 +3,21 @@ package de.uni_hildesheim.sse.exerciseReviewer.eclipse.views;
 import java.io.File;
 import java.util.List;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
@@ -13,32 +28,18 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.part.*;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.SWT;
+import org.eclipse.ui.part.ViewPart;
 
-import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
-import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    CommunicationException;
 import de.uni_hildesheim.sse.exerciseLib.RealUser;
 import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
 import de.uni_hildesheim.sse.exerciseReviewer.core.plugins.ServerAuthentication;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.Utils;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.dialogs.EditRealUser;
+import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
+import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.
+    CommunicationException;
 
 /**
  * A workbench view for showing and modifying assigned users.
@@ -133,14 +134,12 @@ public class UsersView extends ViewPart {
         shell = parent.getShell();
         
         parent.setLayout(new FillLayout());
-        ScrolledComposite scrollPanel = new ScrolledComposite(
-            parent, SWT.H_SCROLL | SWT.V_SCROLL);
+        ScrolledComposite scrollPanel = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
         Composite panel = new Composite(scrollPanel, SWT.NONE);
         scrollPanel.setContent(panel);
 
         try {
-            comm = ReviewCommunication.getInstance(
-                IConfiguration.INSTANCE, null);
+            comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
         } catch (CommunicationException e) {
         }
         
@@ -149,17 +148,13 @@ public class UsersView extends ViewPart {
         panel.setLayout(gridLayout);
 
         Label fileLabel = new Label(panel, SWT.NONE);
-        fileLabel.setText(
-            null != comm ? comm.getUserInstanceInformation() : "");
+        fileLabel.setText(null != comm ? comm.getUserInstanceInformation() : "");
         
         table = new Table(panel, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
         table.setLinesVisible(true);
         table.setHeaderVisible(true);
 
-        String[] columns = {"Submission group", 
-            "User (name and firstname)", 
-            "System account (optional)", 
-            "email"};
+        String[] columns = {"Submission group", "User (name and firstname)", "System account (optional)", "email"};
 
         for (int i = 0; i < columns.length; i++) {
             TableColumn tc = new TableColumn(table, SWT.LEFT);

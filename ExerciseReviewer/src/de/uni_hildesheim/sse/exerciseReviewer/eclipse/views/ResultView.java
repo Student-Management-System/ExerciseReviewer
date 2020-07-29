@@ -3,6 +3,24 @@ package de.uni_hildesheim.sse.exerciseReviewer.eclipse.views;
 import java.io.File;
 import java.util.List;
 
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -14,36 +32,19 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.part.*;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.SWT;
+import org.eclipse.ui.part.ViewPart;
 
-import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
-import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.
-    CommunicationException;
 import de.uni_hildesheim.sse.exerciseLib.Review;
 import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewCommunication;
 import de.uni_hildesheim.sse.exerciseReviewer.core.plugins.ServerAuthentication;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.ReviewUtils;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.Utils;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.dialogs.EditTask;
+import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
+import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
+import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
+import de.uni_hildesheim.sse.exerciseSubmitter.submission.
+    CommunicationException;
 
 /**
  * A workbench view for showing all review results.
@@ -131,14 +132,12 @@ public class ResultView extends ViewPart {
         this.shell = parent.getShell();
         
         parent.setLayout(new FillLayout());
-        ScrolledComposite scrollPanel = new ScrolledComposite(
-            parent, SWT.H_SCROLL | SWT.V_SCROLL);
+        ScrolledComposite scrollPanel = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
         Composite panel = new Composite(scrollPanel, SWT.NONE);
         scrollPanel.setContent(panel);
 
         try {
-            comm = ReviewCommunication.getInstance(
-                IConfiguration.INSTANCE, null);
+            comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
         } catch (CommunicationException e) {
         }
         
@@ -147,15 +146,13 @@ public class ResultView extends ViewPart {
         panel.setLayout(gridLayout);
 
         Label fileLabel = new Label(panel, SWT.NONE);
-        fileLabel.setText(null != comm 
-            ? comm.getReviewInstanceInformation() : "");
+        fileLabel.setText(null != comm ? comm.getReviewInstanceInformation() : "");
         
         table = new Table(panel, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
         table.setLinesVisible(true);
         table.setHeaderVisible(true);
 
-        String[] columns = {"Submission group", "Credits", "Review", 
-            "submitted to server"};
+        String[] columns = {"Submission group", "Credits", "Review", "submitted to server"};
 
         for (int i = 0; i < columns.length; i++) {
             TableColumn tc = new TableColumn(table, SWT.LEFT);
@@ -261,15 +258,11 @@ public class ResultView extends ViewPart {
             item.setText(0, Utils.eliminateNull(userName));
             try {
                 if (null != comm) {
-                    Review review = comm.getReview(
-                        info.getTask(), userName);
+                    Review review = comm.getReview(info.getTask().getName(), userName);
                     if (null != review) {
-                        item.setText(1, String.valueOf(
-                            review.getCredits()));
-                        item.setText(2, Utils.eliminateNull(
-                            review.getReview()));
-                        item.setText(3, String.valueOf(
-                            review.isSubmittedToServer()));
+                        item.setText(1, String.valueOf(review.getCredits()));
+                        item.setText(2, Utils.eliminateNull(review.getReview()));
+                        item.setText(3, String.valueOf(review.isSubmittedToServer()));
                     }
                 }
             } catch (CommunicationException e) {
