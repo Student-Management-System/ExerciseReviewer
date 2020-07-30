@@ -159,11 +159,27 @@ public class StudentManagementCommunication extends ReviewCommunication {
         participants = new ArrayList<>();
         try {
         mgmtProtocol.loadParticipants().stream()
-            .map(u -> new RealUser(u.getFullName(), u.getEMail(), "---", u.getAccountName()))
+            .map(u -> toRealUser(u))
             .forEach(participants::add);
         } catch (NetworkException e) {
             new CommunicationException(SubmissionPublicMessage.UNABLE_TO_CONTACT_STUDENT_MANAGEMENT_SERVER, e);
         }
+    }
+    
+    /**
+     * Converts a {@link User} to a {@link RealUser}.
+     * @param user The user to convert.
+     * @return The converted user.
+     */
+    private RealUser toRealUser(User user) {
+        RealUser realUser;
+        if (user.getGroupName() == null) {
+            realUser = new RealUser(user.getFullName(), user.getEMail(), "", user.getAccountName());            
+        } else {
+            realUser = new RealUser(user.getFullName(), user.getEMail(), user.getGroupName(), user.getAccountName());
+        }
+        
+        return realUser;
     }
 
     @Override
@@ -181,7 +197,12 @@ public class StudentManagementCommunication extends ReviewCommunication {
 
     @Override
     public boolean acceptsUsersAsFile() {
-        return false;
+        /* 
+         * Does not accept reloading via users file, but this is needed to load data into UI table, which is supported
+         * by this communication.
+         * Misleading naming
+         */
+        return true;
     }
 
     @Override
@@ -194,7 +215,7 @@ public class StudentManagementCommunication extends ReviewCommunication {
         /* 
          * Does not accept reloading via results file, but this is needed to load data into UI table, which is supported
          * by this communication.
-         * Missleading naming
+         * Misleading naming
          */
         return true;
     }

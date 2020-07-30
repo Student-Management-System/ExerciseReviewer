@@ -204,6 +204,7 @@ public class UsersView extends ViewPart {
         List<RealUser> users;
         try {
             if (null != comm) {
+                comm.reloadUsers();
                 users = comm.getAllKnownUsers();
                 for (RealUser user : users) {
                     TableItem item = new TableItem(table, 0);
