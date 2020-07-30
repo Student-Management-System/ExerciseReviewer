@@ -66,6 +66,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -86,10 +87,7 @@ import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.ISubmissionProject;
 import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.SwitchWorkspace;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessage;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.IMessageListener;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.IPathFactory;
-import de.uni_hildesheim.sse.exerciseSubmitter.submission.Submission;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     SubmissionCommunication;
 import net.ssehub.exercisesubmitter.protocol.backend.NetworkException;
@@ -264,6 +262,12 @@ public class ReviewView extends ViewPart implements IPathFactory {
     private Map<TableItem, IMarker> itemMap = new HashMap<TableItem, IMarker>();
     
     /**
+     * A listener to react on selected projects of the Package explorer.
+     * Need to be unregistered after Review Window is cloded to avoid SWTExceptions.
+     */
+    private WorkbenchPartSelectionListener wpListener;
+    
+    /**
      * The constructor of this view.
      * 
      * @since 1.00
@@ -327,9 +331,9 @@ public class ReviewView extends ViewPart implements IPathFactory {
 
         ResourcesPlugin.getWorkspace().addResourceChangeListener(
             new ResourceChangeListener());
+        wpListener = new WorkbenchPartSelectionListener();
         // names can be obtained from getSite().getPage().get...References()
-        getSite().getPage().addSelectionListener(JavaUI.ID_PACKAGES,
-            new WorkbenchPartSelectionListener());
+        getSite().getPage().addSelectionListener(JavaUI.ID_PACKAGES, wpListener);
 
         panel.getShell().addListener(SWT.Deactivate, new EditorListener());
         panel.setSize(panel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -587,25 +591,24 @@ public class ReviewView extends ViewPart implements IPathFactory {
      * @since 1.00
      */
     private void updateUI(Widget widget) {
-        for (IWorkbenchPage page : getSite().getWorkbenchWindow().getPages()) {
-            for (IEditorReference editor : page.getEditorReferences()) {
-                IEditorPart part = editor.getEditor(false);
-                if (null != part) {
-                    if (widget == part.getEditorSite().getShell()) {
-                        if (part.getEditorInput() instanceof FileEditorInput) {
-                            FileEditorInput input =
-                                (FileEditorInput) part.getEditorInput();
-                            for (IProject project : ResourcesPlugin
-                                .getWorkspace().getRoot().getProjects()) {
-                                String file = input.getFile().toString();
-                                if (file.startsWith("L/" + project.getName()
-                                    + "/")) {
-                                    file = file.substring(project.getName()
-                                        .length() + 3);
-                                }
-                                if (null != project.findMember(file)) {
-                                    updateUI(project);
-                                    return;
+        IWorkbenchWindow activeWindow = getSite().getWorkbenchWindow();
+        if (null != activeWindow) {
+            for (IWorkbenchPage page : activeWindow.getPages()) {
+                for (IEditorReference editor : page.getEditorReferences()) {
+                    IEditorPart part = editor.getEditor(false);
+                    if (null != part) {
+                        if (widget == part.getEditorSite().getShell()) {
+                            if (part.getEditorInput() instanceof FileEditorInput) {
+                                FileEditorInput input = (FileEditorInput) part.getEditorInput();
+                                for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+                                    String file = input.getFile().toString();
+                                    if (file.startsWith("L/" + project.getName() + "/")) {
+                                        file = file.substring(project.getName().length() + 3);
+                                    }
+                                    if (null != project.findMember(file)) {
+                                        updateUI(project);
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -820,7 +823,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
      * @since 1.00
      */
     private Group createEditGroup(Composite parent) {
-        Group group = new Group(parent, 0);
+        Group group = new Group(parent, SWT.H_SCROLL | SWT.V_SCROLL);
         group.setText("Review Data");
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 2;
@@ -863,8 +866,8 @@ public class ReviewView extends ViewPart implements IPathFactory {
         gatherButton.addSelectionListener(buttonListener);
         review = new Text(group, SWT.WRAP | SWT.BORDER);
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        gridData.heightHint = 120;
-        gridData.widthHint = 300;
+        gridData.heightHint = 180;
+        gridData.widthHint = 400;
         gridData.horizontalSpan = 2;
         review.setLayoutData(gridData);
 
@@ -973,48 +976,61 @@ public class ReviewView extends ViewPart implements IPathFactory {
             builder.append("\n");
         }
         ISubmissionProject project = obtainSubmissionProject();
-        String log = null;
+        String comitLog = null;
         try {
-            SubmissionCommunication replayComm = GuiUtils.getFirstReplayConnection(IConfiguration.INSTANCE, null);
-            if (null != replayComm) {
-                log = replayComm.getSubmissionLog(task, project.getName());
-            }
-        } catch (CommunicationException e) {
-            // for now, don't bother the user
-            e.printStackTrace();
-            //GuiUtils.handleThrowable(e);
+            Assessment assessment = ((ExerciseReviewerProtocol) Activator.getProtocol())
+                .getAssessmentForSubmission(project.getName());
+            comitLog = assessment.summerizePartialAssessments();
+        } catch (NetworkException e) {
+            GuiUtils.openDialog(DialogType.ERROR, "Could not retrieve assessment data from student management server: "
+                + e.getMessage());
         }
-        if (null != log) {
-            IMessageListener listener = new IMessageListener() {
-                
-                @Override
-                public void notifyMessage(IMessage message) {
-                    builder.append("\n");
-                    builder.append("Here goes the submission log:\n");
-                    if (null != message.getFile()) {
-                        builder.append(message.getFile());
-                        if (message.getLine() > 0) {
-                            builder.append(":");
-                            builder.append(message.getLine());
-                        }
-                        builder.append(" ");
-                    }
-                    if (null != message.getType()) {
-                        builder.append(message.getType().name());
-                        builder.append(" ");
-                    }
-                    if (null != message.getTool() 
-                        && message.getTool().length() > 0) {
-                        builder.append(" by ");
-                        builder.append(message.getTool());
-                        builder.append(" ");
-                    }
-                    builder.append(message.getMessage());
-                    builder.append("\n");
-                }
-            };
-            Submission.getUnparsedMessage(log, listener);
+        if (null != comitLog && !comitLog.isEmpty()) {
+            builder.append("Problems detected by the submission system:\n");
+            builder.append(comitLog);
         }
+//        String log = null;
+//        try {
+//            SubmissionCommunication replayComm = GuiUtils.getFirstReplayConnection(IConfiguration.INSTANCE, null);
+//            if (null != replayComm) {
+//                log = replayComm.getSubmissionLog(task, project.getName());
+//            }
+//        } catch (CommunicationException e) {
+//            // for now, don't bother the user
+//            e.printStackTrace();
+//            //GuiUtils.handleThrowable(e);
+//        }
+//        if (null != log) {
+//            IMessageListener listener = new IMessageListener() {
+//                
+//                @Override
+//                public void notifyMessage(IMessage message) {
+//                    builder.append("\n");
+//                    builder.append("Here goes the submission log:\n");
+//                    if (null != message.getFile()) {
+//                        builder.append(message.getFile());
+//                        if (message.getLine() > 0) {
+//                            builder.append(":");
+//                            builder.append(message.getLine());
+//                        }
+//                        builder.append(" ");
+//                    }
+//                    if (null != message.getType()) {
+//                        builder.append(message.getType().name());
+//                        builder.append(" ");
+//                    }
+//                    if (null != message.getTool() 
+//                        && message.getTool().length() > 0) {
+//                        builder.append(" by ");
+//                        builder.append(message.getTool());
+//                        builder.append(" ");
+//                    }
+//                    builder.append(message.getMessage());
+//                    builder.append("\n");
+//                }
+//            };
+//            Submission.getUnparsedMessage(log, listener);
+//        }
 
         review.setText(builder.toString());
     }
@@ -1333,5 +1349,12 @@ public class ReviewView extends ViewPart implements IPathFactory {
      */
     public void setFocus() {
         viewer.getControl().setFocus();
+    }
+    
+    @Override
+    public void dispose() {
+        getSite().getPage().removeSelectionListener(JavaUI.ID_PACKAGES, wpListener);
+        wpListener = null;
+        super.dispose();
     }
 }
