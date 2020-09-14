@@ -432,6 +432,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
                 if (event.getResource() != null) {
                     Display.getDefault().syncExec(new Runnable() {
 
+                        @Override
                         public void run() {
                             updateUI(getProject(event.getResource()));
                         }
@@ -440,6 +441,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
                 } else if (event.getDelta() != null) {
                     Display.getDefault().syncExec(new Runnable() {
 
+                        @Override
                         public void run() {
                             getProject(event.getDelta());
                             updateUI(getProject(event.getDelta()));
@@ -450,6 +452,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
             } else if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         clearEditor();
                     }

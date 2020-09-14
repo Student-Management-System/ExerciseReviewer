@@ -242,6 +242,7 @@ public class UsersView extends ViewPart {
         }
         
         deleteAction = new Action() {
+            @Override
             public void run() {
                 TableItem[] selection = table.getSelection();
                 for (int i = 0; i < selection.length; i++) {
@@ -263,6 +264,7 @@ public class UsersView extends ViewPart {
         deleteAction.setEnabled(comm.acceptsUserModification());
 
         addAction = new Action() {
+            @Override
             public void run() {
                 EditRealUser edit = new EditRealUser(shell, null);
                 if (null != edit.getRealUser()) {
@@ -284,6 +286,7 @@ public class UsersView extends ViewPart {
         addAction.setEnabled(comm.acceptsUserModification());
         
         editAction = new Action() {
+            @Override
             public void run() {
                 TableItem[] item = table.getSelection();
                 for (int i = 0; i < item.length; i++) {
@@ -310,10 +313,11 @@ public class UsersView extends ViewPart {
         editAction.setEnabled(comm.acceptsUserModification());
 
         loadAction = new Action() {
+            @Override
             public void run() {
                 FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-                final String[] extensions = { "*.users" };
-                final String[] filterNames = { "User files" };
+                final String[] extensions = {"*.users"};
+                final String[] filterNames = {"User files"};
                 dialog.setText("Load user data file");
 
                 dialog.setFilterExtensions(extensions);
@@ -344,6 +348,7 @@ public class UsersView extends ViewPart {
         loadAction.setEnabled(comm.acceptsUsersAsFile());
         
         refreshAction = new Action() {
+            @Override
             public void run() {
                 try {
                     comm.reloadUsers();
@@ -369,6 +374,7 @@ public class UsersView extends ViewPart {
         MenuManager menuMgr = new MenuManager("#PopupMenu");
         menuMgr.setRemoveAllWhenShown(true);
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 UsersView.this.fillContextMenu(manager);
             }

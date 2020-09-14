@@ -95,6 +95,7 @@ public class EditTask {
         Button ok = new Button(sh, SWT.None);
         ok.setText("Close");
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 sh.dispose();
             }
@@ -104,6 +105,7 @@ public class EditTask {
         Button remove = new Button(sh, SWT.None);
         remove.setText("Remove");
         remove.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 removeAction();
             }
@@ -113,6 +115,7 @@ public class EditTask {
         Button add = new Button(sh, SWT.None);
         add.setText("Add/Store");
         add.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 addAction();
             }

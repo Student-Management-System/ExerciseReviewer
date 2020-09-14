@@ -216,7 +216,7 @@ public class ResultView extends ViewPart {
                 || event.getType() == IResourceChangeEvent.PRE_DELETE) {
                 if (event.getResource() != null) {
                     Display.getDefault().syncExec(new Runnable() {
-
+                        @Override
                         public void run() {
                             fillTable();
                         }
@@ -225,6 +225,7 @@ public class ResultView extends ViewPart {
                 } else if (event.getDelta() != null) {
                     Display.getDefault().syncExec(new Runnable() {
 
+                        @Override
                         public void run() {
                             fillTable();
                         }
@@ -234,6 +235,7 @@ public class ResultView extends ViewPart {
             } else if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         fillTable();
                     }
@@ -281,6 +283,7 @@ public class ResultView extends ViewPart {
         }
         
         editAction = new Action() {
+            @Override
             public void run() {
                 new EditTask(shell, comm);
             }
@@ -294,6 +297,7 @@ public class ResultView extends ViewPart {
         editAction.setEnabled(comm.acceptsTaskModification());
         
         refreshAction = new Action() {
+            @Override
             public void run() {
                 try {
                     comm.reloadReviews();
@@ -311,6 +315,7 @@ public class ResultView extends ViewPart {
         refreshAction.setImageDescriptor(imgDescriptor);
         
         loadAction = new Action() {
+            @Override
             public void run() {
                 try {
                     int count = comm.getReviewCount(
@@ -326,8 +331,8 @@ public class ResultView extends ViewPart {
                     }
                     if (0 == count) {
                         FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-                        final String[] extensions = { "*.tsv" };
-                        final String[] filterNames = { "Review files" };
+                        final String[] extensions = {"*.tsv"};
+                        final String[] filterNames = {"Review files"};
                         dialog.setText("Load review data file");
         
                         dialog.setFilterExtensions(extensions);
@@ -360,11 +365,12 @@ public class ResultView extends ViewPart {
 
     
         mergeAction = new Action() {
+            @Override
             public void run() {
                 try {
                     FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-                    final String[] extensions = { "*.tsv" };
-                    final String[] filterNames = { "Review files" };
+                    final String[] extensions = {"*.tsv"};
+                    final String[] filterNames = {"Review files"};
                     dialog.setText("Merge review data file");
     
                     dialog.setFilterExtensions(extensions);
@@ -406,6 +412,7 @@ public class ResultView extends ViewPart {
         MenuManager menuMgr = new MenuManager("#PopupMenu");
         menuMgr.setRemoveAllWhenShown(true);
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 ResultView.this.fillContextMenu(manager);
             }

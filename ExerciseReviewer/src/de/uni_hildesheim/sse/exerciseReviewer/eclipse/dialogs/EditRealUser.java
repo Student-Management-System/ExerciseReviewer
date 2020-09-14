@@ -86,6 +86,7 @@ public class EditRealUser {
         Button ok = new Button(sh, SWT.None);
         ok.setText("Ok");
         ok.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 okayAction();
             }
@@ -95,6 +96,7 @@ public class EditRealUser {
         Button cancel = new Button(sh, SWT.None);
         cancel.setText("Cancel");
         cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 EditRealUser.this.user = null;
                 sh.close();

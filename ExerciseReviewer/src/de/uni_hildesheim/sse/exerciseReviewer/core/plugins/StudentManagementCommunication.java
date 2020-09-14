@@ -50,6 +50,12 @@ public class StudentManagementCommunication extends ReviewCommunication {
     private List<RealUser> participants;
     private List<Review> reviews;
     
+    /**
+     * Sole constructor of this class.
+     * @param username the name of the user which will communicate with a concrete communication server
+     * @param password the password of <code>username</code>
+     * @throws CommunicationException if any (wrapped) communication error occurs
+     */
     private StudentManagementCommunication(String username, String password) throws CommunicationException {
         super(username, password);
         mgmtProtocol = (ExerciseReviewerProtocol) Activator.getProtocol();
@@ -158,9 +164,9 @@ public class StudentManagementCommunication extends ReviewCommunication {
     public void reloadUsers() throws CommunicationException {
         participants = new ArrayList<>();
         try {
-        mgmtProtocol.loadParticipants().stream()
-            .map(u -> toRealUser(u))
-            .forEach(participants::add);
+            mgmtProtocol.loadParticipants().stream()
+                .map(u -> toRealUser(u))
+                .forEach(participants::add);
         } catch (NetworkException e) {
             new CommunicationException(SubmissionPublicMessage.UNABLE_TO_CONTACT_STUDENT_MANAGEMENT_SERVER, e);
         }

@@ -96,8 +96,8 @@ public class ReviewUtils {
             // Eclipse may load this on start up before the activator is loaded (e.g, to decorate projects)
             // Init communication on the fly.
             try {
-                com = SubmissionCommunication.getInstances(IConfiguration.INSTANCE, IConfiguration.INSTANCE.getUserName(),
-                    true, null).get(0);
+                com = SubmissionCommunication.getInstances(IConfiguration.INSTANCE,
+                    IConfiguration.INSTANCE.getUserName(), true, null).get(0);
             } catch (CommunicationException e) {
                 Activator.log(e.getMessage(), e);
             }
@@ -382,11 +382,11 @@ public class ReviewUtils {
         if (count > 0) {
             IRunnableWithProgress saveRunnable = new IRunnableWithProgress() {
                 
+                @Override
                 public void run(IProgressMonitor monitor)
                     throws InvocationTargetException, InterruptedException {
 
-                    for (IWorkbenchPage page 
-                        : wb.getActiveWorkbenchWindow().getPages()) {
+                    for (IWorkbenchPage page : wb.getActiveWorkbenchWindow().getPages()) {
                         for (IEditorPart part : page.getDirtyEditors()) {
                             part.doSave(null);
                         }
@@ -395,13 +395,11 @@ public class ReviewUtils {
                 
             };
             
-            ISchedulingRule schedulingRule = 
-                ResourcesPlugin.getWorkspace().getRoot();
+            ISchedulingRule schedulingRule = ResourcesPlugin.getWorkspace().getRoot();
             IProgressService progressService = wb.getProgressService();
             try {
-                progressService.runInUI(progressService, saveRunnable, 
-                    schedulingRule);
-            } catch (Exception e) {
+                progressService.runInUI(progressService, saveRunnable, schedulingRule);
+            } catch (InvocationTargetException | InterruptedException e) {
                 GuiUtils.handleThrowable(e);
             }
         }
