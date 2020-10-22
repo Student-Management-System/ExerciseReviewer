@@ -7,6 +7,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Repos/GIT/StudentMgmt/ExerciseSubmitter/ExerciseSubmitter/libs/submitter-protocol-0.0.1-jar-with-all-dependencies.jar" sourcepath="/Submitter-Protocol"/>
+	<classpathentry kind="lib" path="/ExerciseSubmitter/libs/submitter-protocol-0.0.1-jar-with-all-dependencies.jar" sourcepath="/Submitter-Protocol"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
