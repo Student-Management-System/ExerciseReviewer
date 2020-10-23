@@ -1236,6 +1236,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         MenuManager menuMgr = new MenuManager("#PopupMenu");
         menuMgr.setRemoveAllWhenShown(true);
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 ReviewView.this.fillContextMenu(manager);
             }
@@ -1306,6 +1307,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
      */
     private void makeActions() {
         checkoutAction = new Action() {
+            @Override
             public void run() {
                 replayAllButtonSelected(false);
             }
@@ -1319,6 +1321,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         checkoutAction.setImageDescriptor(imgDescriptor);
 
         submitAllAction = new Action() {
+            @Override
             public void run() {
                 ReviewUtils.submitAllProjects();
             }
@@ -1331,6 +1334,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         submitAllAction.setImageDescriptor(imgDescriptor);
         
         checkoutReplayReviewAction = new Action() {
+            @Override
             public void run() {
                 replayAllButtonSelected(true);
             }
