@@ -365,20 +365,15 @@ public class ReviewView extends ViewPart implements IPathFactory {
             TableItem[] selection = table.getSelection();
             if (null != selection && selection.length > 0) {
                 TableItem selected = selection[0];
-                try {
-                    IMarker marker = itemMap.get(selected);
-                    IResource resource = marker.getResource();
-                    if (marker.exists() && resource instanceof IFile) {
-                        IWorkbenchPage page = 
-                            ReviewView.this.getSite().getPage();
-                        try {
-                            IDE.openEditor(page, marker, 
-                                OpenStrategy.activateOnOpen());
-                        } catch (PartInitException e) {
-                        }
+                IMarker marker = itemMap.get(selected);
+                IResource resource = marker.getResource();
+                if (marker.exists() && resource instanceof IFile) {
+                    IWorkbenchPage page = ReviewView.this.getSite().getPage();
+                    try {
+                        IDE.openEditor(page, marker, OpenStrategy.activateOnOpen());
+                    } catch (PartInitException e) {
                     }
-                } catch (Exception e) {
-                } 
+                }
             }
         }
     }
@@ -900,8 +895,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         submit.setLayoutData(gridData);
         submit.setText("Submit");
         submit.addSelectionListener(buttonListener);
-        submit.setVisible(Boolean.valueOf(IConfiguration.INSTANCE.getProperty(
-            "review.resubmitExercise", "true")));
+        submit.setVisible(Boolean.valueOf(IConfiguration.INSTANCE.getProperty("review.resubmitExercise", "true")));
 
         submit.setEnabled(false);
         gatherButton.setEnabled(false);
@@ -1313,11 +1307,8 @@ public class ReviewView extends ViewPart implements IPathFactory {
             }
         };
         checkoutAction.setText("Retrieve all solutions for review");
-        checkoutAction
-            .setToolTipText("Loads all specific solutions for a task/exercise "
-                + "from the server for review");
-        ImageDescriptor imgDescriptor = 
-            Activator.getImageDescriptor("icons/replay.gif");
+        checkoutAction.setToolTipText("Loads all specific solutions for a task/exercise from the server for review");
+        ImageDescriptor imgDescriptor = Activator.getImageDescriptor("icons/replay.gif");
         checkoutAction.setImageDescriptor(imgDescriptor);
 
         submitAllAction = new Action() {
@@ -1327,10 +1318,8 @@ public class ReviewView extends ViewPart implements IPathFactory {
             }
         };
         submitAllAction.setText("Submit all solutions");
-        submitAllAction
-            .setToolTipText("Submits all reviewed solutions");
-        imgDescriptor = 
-            Activator.getImageDescriptor("icons/submit.gif");
+        submitAllAction.setToolTipText("Submits all reviewed solutions");
+        imgDescriptor = Activator.getImageDescriptor("icons/submit.gif");
         submitAllAction.setImageDescriptor(imgDescriptor);
         
         checkoutReplayReviewAction = new Action() {
@@ -1339,13 +1328,9 @@ public class ReviewView extends ViewPart implements IPathFactory {
                 replayAllButtonSelected(true);
             }
         };
-        checkoutReplayReviewAction.setText(
-            "Retrieve all solutions (replay and review)");
-        checkoutReplayReviewAction
-            .setToolTipText("Loads all specific solutions for a task/exercise "
-                + "from the server");
-        imgDescriptor = 
-            Activator.getImageDescriptor("icons/replayAndReview.gif");
+        checkoutReplayReviewAction.setText("Retrieve all solutions (replay and review)");
+        checkoutReplayReviewAction.setToolTipText("Loads all specific solutions for a task/exercise from the server");
+        imgDescriptor = Activator.getImageDescriptor("icons/replayAndReview.gif");
         checkoutReplayReviewAction.setImageDescriptor(imgDescriptor);
     }
 
