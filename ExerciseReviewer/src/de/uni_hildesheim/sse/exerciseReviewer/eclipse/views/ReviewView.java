@@ -329,8 +329,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
         hookContextMenu();
         contributeToActionBars();
 
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(
-            new ResourceChangeListener());
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener());
         wpListener = new WorkbenchPartSelectionListener();
         // names can be obtained from getSite().getPage().get...References()
         getSite().getPage().addSelectionListener(JavaUI.ID_PACKAGES, wpListener);
@@ -538,8 +537,7 @@ public class ReviewView extends ViewPart implements IPathFactory {
          * 
          * @since 2.0
          */
-        public void selectionChanged(IWorkbenchPart part, 
-            ISelection selection) {
+        public void selectionChanged(IWorkbenchPart part, ISelection selection) {
             updateUI(part);
         }
     }
@@ -1081,16 +1079,22 @@ public class ReviewView extends ViewPart implements IPathFactory {
                         review.getAssessment().setFullReviewComment(reviewText);
                        
                         ReviewCommunication comm = ReviewCommunication.getInstance(IConfiguration.INSTANCE, null);
-                        if (submitToRepository) {
-                            if (ReviewUtils.submitProject(project, task)) {
-                                review.setSubmittedToServer();
-                            }
-                        }
+                        
+                        // Store (temporary) result on management server
                         comm.submitReview(task, review);
+                        
+                        // Write review.txt
                         if (Boolean.valueOf(IConfiguration.INSTANCE.getProperty("review.storeInExercise", "true"))) {
                             ReviewUtils.writeReviewToFile(project, review, maxCredits,
                                 comm.getRealUsers(review.getUserName()));
                             refreshProject();
+                        }
+                        
+                        // Upload review.txt if "submit" result was pressed
+                        if (submitToRepository) {
+                            if (ReviewUtils.submitProject(project, task)) {
+                                review.setSubmittedToServer();
+                            }
                         }
                         ReviewUtils.updateDecorator();
                     }
