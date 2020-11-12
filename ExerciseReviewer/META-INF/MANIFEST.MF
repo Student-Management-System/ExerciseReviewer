@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ExerciseReviewer
 Bundle-SymbolicName: net.ssehub.ExerciseReviewer;singleton:=true
-Bundle-Version: 1.9.0
+Bundle-Version: 1.9.1
 Bundle-Vendor: SSE, University of Hildesheim
 Fragment-Host: net.ssehub.ExerciseSubmitter;bundle-version="1.9.0"
 Require-Bundle: org.eclipse.ui.ide
