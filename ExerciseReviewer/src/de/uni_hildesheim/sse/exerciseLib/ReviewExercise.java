@@ -85,4 +85,4 @@ public class ReviewExercise implements Comparable<ReviewExercise> {
         return getName().compareTo(review.getName());
     }
     
-};
+}

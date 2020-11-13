@@ -349,11 +349,13 @@ public class FileReviewCommunication
     public double getMaximumCredits(String task) 
         throws CommunicationException {
         Exercise exercise = exerciseData.getExercise(task);
+        double result;
         if (null == exercise) {
-            return -1;
+            result = -1;
         } else {
-            return Math.abs(exercise.getMaxCredits());
+            result = Math.abs(exercise.getMaxCredits());
         }
+        return result;
     }
 
     /**
@@ -508,11 +510,13 @@ public class FileReviewCommunication
      */
     public int getReviewCount(String task) throws CommunicationException {
         Exercise exercise = exerciseData.getExercise(task);
+        int result;
         if (null == exercise) {
-            return 0;
+            result = 0;
         } else {
-            return exercise.getReviewCount();
+            result = exercise.getReviewCount();
         }
+        return result;
     }
     
     /**

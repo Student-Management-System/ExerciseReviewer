@@ -79,13 +79,22 @@ public abstract class ReviewPlugin {
      * @since 1.00
      */
     private static boolean register(ReviewPlugin plugin) {
+        boolean found = false;
         for (ReviewPlugin pl : PLUGINS) {
             if (pl.getClass() == plugin.getClass()) {
-                return false;
+                found = true;
+                break;
             }
         }
-        PLUGINS.add(plugin);
-        return true;
+        
+        boolean result;
+        if (found) {
+            result = false;
+        } else {
+            PLUGINS.add(plugin);
+            result = true;
+        }
+        return result;
     }
 
     /**

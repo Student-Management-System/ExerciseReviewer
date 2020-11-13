@@ -469,15 +469,18 @@ public class ReviewView extends ViewPart implements IPathFactory {
         IContainer container =
             ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(
                 resource.getLocation());
+        
+        IProject result = null;
+        
         if (null != container) {
             while (null != container && !(container instanceof IProject)) {
                 container = container.getParent();
             }
             if (container instanceof IProject) {
-                return (IProject) container;
+                result = (IProject) container;
             }
         }
-        return null;
+        return result;
     }
 
     /**

@@ -64,6 +64,8 @@ public class ServerAuthentication extends
         Object[] result = GuiUtils.showListDialog("Reviewer authentication", 
             "Select the user to " + task + " for",
             users, false);
+        
+        boolean success;
         if (null != result && result.length > 0) {
             comm.setUserNameForSubmission(result[0].toString());
             try {
@@ -71,10 +73,11 @@ public class ServerAuthentication extends
             } catch (CommunicationException exc) {
                 GuiUtils.handleThrowable(exc);
             }
-            return true;
+            success = true;
         } else {
-            return false;
+            success = false;
         }
+        return success;
     }
     
     /**

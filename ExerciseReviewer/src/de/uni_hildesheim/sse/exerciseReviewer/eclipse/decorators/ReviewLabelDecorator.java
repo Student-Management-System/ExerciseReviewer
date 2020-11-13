@@ -17,8 +17,6 @@ import de.uni_hildesheim.sse.exerciseReviewer.core.ReviewPublicMessage;
 import de.uni_hildesheim.sse.exerciseReviewer.eclipse.ReviewUtils;
 import de.uni_hildesheim.sse.exerciseSubmitter.Activator;
 import de.uni_hildesheim.sse.exerciseSubmitter.configuration.IConfiguration;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils;
-import de.uni_hildesheim.sse.exerciseSubmitter.eclipse.util.GuiUtils.DialogType;
 import de.uni_hildesheim.sse.exerciseSubmitter.submission.
     CommunicationException;
 import net.ssehub.exercisesubmitter.protocol.frontend.Assignment;

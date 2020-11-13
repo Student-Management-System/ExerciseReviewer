@@ -687,11 +687,13 @@ public class ExerciseData {
      */
     public Review getReview(String task, String userName) {
         Exercise exercise = exercises.get(task);
+        Review result;
         if (null == exercise) {
-            return null;
+            result = null;
         } else {
-            return exercise.getReview(userName);
+            result = exercise.getReview(userName);
         }
+        return result;
     }
     
     /**
