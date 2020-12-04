@@ -78,7 +78,7 @@ public class ReviewUtils {
      * Extracts the task name from the path of a project.
      * 
      * @param path the path of a project
-     * @return the task name
+     * @return The assignment which is corrected within the current workspace or <tt>null</tt> if it could not be loaded
      * 
      * @since 1.00
      */
@@ -105,9 +105,14 @@ public class ReviewUtils {
             com = SubmissionCommunication.getInstance(0);
         }
         
-//        SubmissionCommunication com = SubmissionCommunication.getInstance(0);
-        return SubmissionCommunication.searchForAssignment(taskName, com.getSubmissionsForReview(),
-            com.getAvailableForSubmission(), com.getSubmissionsForReplay());
+        // Communication may not be instantiated (e.g., due to wrong credentials) -> return null (is ok)
+        Assignment result = null;
+        if (null != com) {
+            result = SubmissionCommunication.searchForAssignment(taskName, com.getSubmissionsForReview(),
+                com.getAvailableForSubmission(), com.getSubmissionsForReplay());
+        }
+        
+        return result;
     }
     
     /**
